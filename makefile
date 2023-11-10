@@ -2,7 +2,7 @@ TARGET = graph_test
 
 CC = gcc
 
-LIB_LIST = -framework GLUT -framework OpenGL -framework Cocoa
+LIB_LIST = -lGL -lGLU -lglut
 
 SOURCE_FILES = graph_test.c
 
