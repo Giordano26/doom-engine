@@ -2,7 +2,7 @@ TARGET = graph_test
 
 CC = gcc
 
-LIB_LIST = -lGL -lGLU -lglut
+LIB_LIST = -lGL -lGLU -lglut -lm
 
 SOURCE_FILES = graph_test.c
 

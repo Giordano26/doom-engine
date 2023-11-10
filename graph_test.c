@@ -25,6 +25,22 @@ typedef struct {
   int m; 		//camera up down
 } keys; keys K;
 
+typedef struct{
+
+  float cos[360];
+  float sin[360];
+
+}math; math M;
+
+
+typedef struct {
+  
+  int x,y,z;  //3d spacial loc
+  int a;  // angle of roation left right
+  int l;  //look up and down
+
+} player; player P;
+
 //function to draw pixels at coords x and y with c rgb color pick (c)
 
 void pixel (int x , int y , int c){
@@ -83,19 +99,61 @@ void pixel (int x , int y , int c){
 
 
   void movePlayer(){
+    
+    //left
+    if(K.a == 1 && K.m == 0){ 
+      P.a -= 4;
+      if(P.a < 0){
+        P.a += 360;
+      }
+     }
 
-    if(K.a == 1 && K.m == 0){ printf("left\n"); }
-    if(K.d == 1 && K.m == 0){ printf("right\n"); }
-    if(K.w == 1 && K.m == 0){ printf("up\n"); }
-    if(K.s == 1 && K.m == 0){ printf("down\n"); }
+    //right
+    if(K.d == 1 && K.m == 0){ 
+      P.a += 4;
+      if(P.a > 359){
+        P.a -=360;
+       } 
+      }
 
-    if(K.sl == 1 ){ printf("strafe left\n"); }
-    if(K.sr == 1 ){ printf("srafe right\n"); }
+    int dx = M.sin[P.a] * 10.0;
+    int dy = M.cos[P.a] * 10.0;
 
-    if(K.a == 1 && K.m == 1){ printf("look up\n"); }
-    if(K.d == 1 && K.m == 1){ printf("look down\n"); }
-    if(K.w == 1 && K.m == 1){ printf("move up\n"); }
-    if(K.s == 1 && K.m == 1){ printf("move down\n"); }
+    //foward
+    if(K.w == 1 && K.m == 0){
+       P.x += dx;
+       P.y += dy; 
+       }
+
+    //backwards   
+    if(K.s == 1 && K.m == 0){
+      P.x -= dx;
+      P.y -= dy;
+      }
+
+    //strafe left
+    if(K.sl == 1 ){ 
+      P.x -= dy;
+      P.y += dx; 
+      }
+
+    //strafe right
+    if(K.sr == 1 ){ 
+      P.x += dy;
+      P.y -= dx;     
+    }
+
+    //look up
+    if(K.a == 1 && K.m == 1){ P.l -= 1; }
+
+    //look down
+    if(K.d == 1 && K.m == 1){ P.l += 1; }
+
+    //move up
+    if(K.w == 1 && K.m == 1){ P.z -= 4; }
+
+    //move down
+    if(K.s == 1 && K.m == 1){ P.z += 4; }
     
 
   }
@@ -112,26 +170,50 @@ void pixel (int x , int y , int c){
     }
   }
 
-  int tick;
 
   void draw3D(){
-    int x,y, c = 0;
+  int wall_x[4], wall_y[4], wall_z[4];
+  float cs = M.cos[P.a], sn = M.sin[P.a]; //cos and sin from player rotation
 
-    for(y = 0 ; y < SH2; y++){
-      for( x = 0 ; x < SW2; x++){
-        pixel(x,y,c);
-        c += 1;
-        if(c > 8) { c = 0; }
-      }
-    }
+  //offset from 2 bottom points from the wall
+  int x1 = 40 - P.x, y1 = 10 - P.y; 
+  int x2 = 40 - P.x, y2 = 290 - P.y;
+
+  //World x position
+  wall_x[0] = x1 * cs - y1 * sn;
+  wall_x[1] = x2 * cs - y2 * sn;
+
+  //World y position
+  wall_y[0] = y1 * cs + x1 * sn;
+  wall_y[1] = y2 * cs + x2 * sn;
+
+  //world z height
+  //rescale the center 32 -> to keep in scale
+  if (wall_y[0] != 0) {
+    wall_z[0] = 0 - P.z + ((P.l * wall_y[0]) / 32.0 );
+  }
+
+  if (wall_y[1] != 0) {
+    wall_z[1] = 0 - P.z + ((P.l * wall_y[1]) / 32.0 );
+  }
 
 
-    tick += 1; 
-    if(tick > 20){
-      tick = 0;
-    }
+  //screen x and y, the further it is more at the center it should be
+  wall_x[0] = wall_x[0] * 200 / wall_y[0] + SW2;
+  wall_y[0] = wall_z[0] * 200 / wall_y[0] + SH2;
 
-    pixel(SW2, SH2+tick,0);  //create up movement for testing refresh rate
+  wall_x[1] = wall_x[1] * 200 / wall_y[1] + SW2;
+  wall_y[1] = wall_z[1] * 200 / wall_y[1] + SH2;
+
+  //draw points
+  if(wall_x[0] > 0 && wall_x[0] < SW && wall_y[0] > 0 && wall_y[0] < SH){
+    pixel(wall_x[0], wall_y[0],0);
+  }
+
+  if(wall_x[1] > 0 && wall_x[1] < SW && wall_y[1] > 0 && wall_y[1] < SH){
+    pixel(wall_x[1], wall_y[1],0);
+  }
+
 
   }
 
@@ -162,27 +244,45 @@ glutPostRedisplay();
 
 void KeysDown(unsigned char key, int x, int y){
 
-  if(key == 'w' == 1 ){ K.w = 1;}
-  if(key == 'a' == 1 ){ K.a = 1;}
-  if(key == 's' == 1 ){ K.s = 1;}
-  if(key == 'd' == 1 ){ K.d = 1;}
-  if(key == ',' == 1 ){ K.sl = 1;}
-  if(key == '.' == 1 ){ K.sr = 1;}
+  if(key == 'w' ){ K.w = 1;}
+  if(key == 'a' ){ K.a = 1;}
+  if(key == 's' ){ K.s = 1;}
+  if(key == 'd' ){ K.d = 1;}
+  if(key == 'm' ){ K.m = 1;}
+  if(key == ',' ){ K.sl = 1;}
+  if(key == '.' ){ K.sr = 1;}
 
 }
 
 void KeysUp(unsigned char key, int x, int y){
 
-  if(key == 'w' == 0 ){ K.w = 0;}
-  if(key == 'a' == 0 ){ K.a = 0;}
-  if(key == 's' == 0 ){ K.s = 0;}
-  if(key == 'd' == 0 ){ K.d = 0;}
-  if(key == ',' == 0 ){ K.sl = 0;}
-  if(key == '.' == 0 ){ K.sr = 0;}
+  if(key == 'w' ){ K.w = 0;}
+  if(key == 'a' ){ K.a = 0;}
+  if(key == 's' ){ K.s = 0;}
+  if(key == 'd' ){ K.d = 0;}
+  if(key == 'm' ){ K.m = 0;}
+  if(key == ',' ){ K.sl = 0;}
+  if(key == '.' ){ K.sr = 0;}
 
 }
 
 void init(){
+
+  int x;
+  //store sin/cos in dg
+
+  for(x = 0; x < 360; x++){           
+    M.cos[x] = cos(x/180.0*M_PI);
+    M.sin[x] = sin(x/180.0*M_PI);
+
+  }
+
+  //init player
+  P.x = 70;
+  P.y = -110;
+  P.z = 20;
+  P.a = 0;
+  P.l = 0;
   
 }
 
@@ -197,7 +297,7 @@ int main(int argc, char* argv[]){
   init();
   glutDisplayFunc(display);
   glutKeyboardFunc(KeysDown);
-  glutKeyboardFunc(KeysUp);
+  glutKeyboardUpFunc(KeysUp);
   glutMainLoop();
 
   return 0;
