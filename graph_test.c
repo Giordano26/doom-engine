@@ -1,6 +1,7 @@
+#define GL_SILENCE_DEPRECATION
 #include <math.h>
 #include <stdio.h>
-#include <GL/glut.h>
+#include <GLUT/glut.h>
 
 #define res		1  // 0 -> 160x120, 1 -> 360x240, 4 -> 640 x 480
 #define SW 		160 * res //width
