@@ -171,15 +171,16 @@ void pixel (int x , int y , int c){
   }
 
 
-void drawWall(int x1, int x2, int b1, int b2){
+void drawWall(int x1, int x2, int b1, int b2, int t1, int t2){
 
   int x,y;
 
   //variable to put the difference in distance
 
   int dyb = b2 - b1; //y distance of bottom line
+  int dyt = t2 - t1; //y distance of top line
   int dx = x2 - x1;
-
+  
   // x distance
   if ( dx == 0) {
     dx = 1;
@@ -188,13 +189,52 @@ void drawWall(int x1, int x2, int b1, int b2){
   // initial x1 pos
   int xs = x1;
 
+  //Clipping X
+
+  if(x1 < 1){  // clip left
+    x1 = 1;
+  }
+
+  if(x2 < 1) {
+    x2 = 1;  //clip left
+  }
+
+  if(x1 > SW - 1){
+    x1 = SW - 1; //clip right
+  }
+
+  if(x2 > SW - 1){
+    x2 = SW - 1;  //clip right
+  }
+
   //drawing the vertical line
 
   for( x = x1; x < x2; x++){
 
     int y1 = dyb * (x - xs + 0.5) / dx + b1; //bottom point for y | 0.5 prevents rounding issues
+    int y2 = dyt * (x - xs + 0.5) / dx + t1; 
 
-    pixel(x,y1,0);  //plot at the y bottom calculated with color 0
+    if(y1 < 1){  // clip y
+      y1 = 1;
+      }
+
+    if(y2 < 1) {
+      y2 = 1;  //clip y
+    }
+
+    if(y1 > SH - 1){
+      y1 = SH - 1; //clip y
+    }
+
+    if(y2 > SH - 1){
+      y2 = SH - 1;  //clip y
+    }
+
+    for(y = y1; y < y2; y++){
+
+      pixel(x,y,0);
+
+    }
   }
 }
 
@@ -210,19 +250,24 @@ void drawWall(int x1, int x2, int b1, int b2){
   wall_x[0] = x1 * cs - y1 * sn;
   wall_x[1] = x2 * cs - y2 * sn;
 
+  wall_x[2] = wall_x[0];
+  wall_x[3] = wall_x[1]; //top line has the same x
+
   //World y position
   wall_y[0] = y1 * cs + x1 * sn;
   wall_y[1] = y2 * cs + x2 * sn;
 
+  wall_y[2] = wall_y[0];
+  wall_y[3] = wall_y[1]; //top line has the same y
+
   //world z height
   //rescale the center 32 -> to keep in scale
-  if (wall_y[0] != 0) {
-    wall_z[0] = 0 - P.z + ((P.l * wall_y[0]) / 32.0 );
-  }
+  wall_z[0] = 0 - P.z + ((P.l * wall_y[0]) / 32.0 );
+  wall_z[1] = 0 - P.z + ((P.l * wall_y[1]) / 32.0 );
 
-  if (wall_y[1] != 0) {
-    wall_z[1] = 0 - P.z + ((P.l * wall_y[1]) / 32.0 );
-  }
+  wall_z[2] = wall_z[0] + 40;
+  wall_z[3] = wall_z[1] + 40; //top line has new z
+
 
 
   //screen x and y, the further it is more at the center it should be
@@ -231,6 +276,12 @@ void drawWall(int x1, int x2, int b1, int b2){
 
   wall_x[1] = wall_x[1] * 200 / wall_y[1] + SW2;
   wall_y[1] = wall_z[1] * 200 / wall_y[1] + SH2;
+
+  wall_x[2] = wall_x[2] * 200 / wall_y[2] + SW2;
+  wall_y[2] = wall_z[2] * 200 / wall_y[2] + SH2;
+
+  wall_x[3] = wall_x[3] * 200 / wall_y[3] + SW2;
+  wall_y[3] = wall_z[3] * 200 / wall_y[3] + SH2;
 
   //draw points
   /*if(wall_x[0] > 0 && wall_x[0] < SW && wall_y[0] > 0 && wall_y[0] < SH){
@@ -241,7 +292,7 @@ void drawWall(int x1, int x2, int b1, int b2){
     pixel(wall_x[1], wall_y[1],0); 
   } */
 
-  drawWall(wall_x[0],wall_x[1],wall_y[0],wall_y[1]);
+  drawWall(wall_x[0],wall_x[1],wall_y[0],wall_y[1], wall_y[2], wall_y[3]);
 
 
   }
