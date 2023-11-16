@@ -1,7 +1,7 @@
 #define GL_SILENCE_DEPRECATION
 #include <math.h>
 #include <stdio.h>
-#include <GLUT/glut.h>
+#include <GL/glut.h>
 
 #define res		1  // 0 -> 160x120, 1 -> 360x240, 4 -> 640 x 480
 #define SW 		160 * res //width
@@ -171,6 +171,33 @@ void pixel (int x , int y , int c){
   }
 
 
+void drawWall(int x1, int x2, int b1, int b2){
+
+  int x,y;
+
+  //variable to put the difference in distance
+
+  int dyb = b2 - b1; //y distance of bottom line
+  int dx = x2 - x1;
+
+  // x distance
+  if ( dx == 0) {
+    dx = 1;
+  }
+
+  // initial x1 pos
+  int xs = x1;
+
+  //drawing the vertical line
+
+  for( x = x1; x < x2; x++){
+
+    int y1 = dyb * (x - xs + 0.5) / dx + b1; //bottom point for y | 0.5 prevents rounding issues
+
+    pixel(x,y1,0);  //plot at the y bottom calculated with color 0
+  }
+}
+
   void draw3D(){
   int wall_x[4], wall_y[4], wall_z[4];
   float cs = M.cos[P.a], sn = M.sin[P.a]; //cos and sin from player rotation
@@ -206,13 +233,15 @@ void pixel (int x , int y , int c){
   wall_y[1] = wall_z[1] * 200 / wall_y[1] + SH2;
 
   //draw points
-  if(wall_x[0] > 0 && wall_x[0] < SW && wall_y[0] > 0 && wall_y[0] < SH){
+  /*if(wall_x[0] > 0 && wall_x[0] < SW && wall_y[0] > 0 && wall_y[0] < SH){
     pixel(wall_x[0], wall_y[0],0);
   }
 
   if(wall_x[1] > 0 && wall_x[1] < SW && wall_y[1] > 0 && wall_y[1] < SH){
-    pixel(wall_x[1], wall_y[1],0);
-  }
+    pixel(wall_x[1], wall_y[1],0); 
+  } */
+
+  drawWall(wall_x[0],wall_x[1],wall_y[0],wall_y[1]);
 
 
   }
