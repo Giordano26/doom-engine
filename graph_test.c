@@ -171,6 +171,29 @@ void pixel (int x , int y , int c){
   }
 
 
+void clipBehindPlayer(int *x1, int *y1, int *z1, int x2, int y2, int z2){ //clip line
+
+
+  float da = *y1;  //distance plane to point a
+  float db = y2;  //distance plane to point b
+  float d = da - db; 
+
+  if( d == 0){d = 1;}
+
+  float s = da / (da-db); //intersection factor 
+
+  *x1 = *x1 + s* (x2 - (*x1)); 
+  *y1 = *y1 + s* (y2 - (*y1));
+
+  if(*y1 == 0){ *y1 = 1; } //trying to prevent 0 divisions
+
+  *z1 = *z1 + s* (z2 - (*z1));
+
+
+
+}
+
+
 void drawWall(int x1, int x2, int b1, int b2, int t1, int t2){
 
   int x,y;
@@ -182,9 +205,7 @@ void drawWall(int x1, int x2, int b1, int b2, int t1, int t2){
   int dx = x2 - x1;
   
   // x distance
-  if ( dx == 0) {
-    dx = 1;
-  }
+  if ( dx == 0) {dx = 1;}
 
   // initial x1 pos
   int xs = x1;
@@ -268,7 +289,25 @@ void drawWall(int x1, int x2, int b1, int b2, int t1, int t2){
   wall_z[2] = wall_z[0] + 40;
   wall_z[3] = wall_z[1] + 40; //top line has new z
 
+  //don't draw behind player
+  if(wall_y[0] < 1 && wall_y[1] < 1) { return; }
 
+  //point 1 behind player, needs to be clipped
+  if(wall_y[0] < 1){
+
+    clipBehindPlayer(&wall_x[0], &wall_y[0],&wall_z[0], wall_x[1],wall_y[1],wall_z[1]); //bottom line
+    clipBehindPlayer(&wall_x[2], &wall_y[2],&wall_z[2], wall_x[3],wall_y[3],wall_z[3]); //top line
+
+  }
+
+  //point 2 behind player, needs to be clipped
+  if(wall_y[1] < 1){
+
+    //same logic for point 1 but reversed
+    clipBehindPlayer(&wall_x[1], &wall_y[1],&wall_z[1], wall_x[0],wall_y[0],wall_z[0]); //bottom line
+    clipBehindPlayer(&wall_x[3], &wall_y[3],&wall_z[3], wall_x[2],wall_y[2],wall_z[2]); //top line
+
+  }
 
   //screen x and y, the further it is more at the center it should be
   wall_x[0] = wall_x[0] * 200 / wall_y[0] + SW2;
@@ -282,15 +321,6 @@ void drawWall(int x1, int x2, int b1, int b2, int t1, int t2){
 
   wall_x[3] = wall_x[3] * 200 / wall_y[3] + SW2;
   wall_y[3] = wall_z[3] * 200 / wall_y[3] + SH2;
-
-  //draw points
-  /*if(wall_x[0] > 0 && wall_x[0] < SW && wall_y[0] > 0 && wall_y[0] < SH){
-    pixel(wall_x[0], wall_y[0],0);
-  }
-
-  if(wall_x[1] > 0 && wall_x[1] < SW && wall_y[1] > 0 && wall_y[1] < SH){
-    pixel(wall_x[1], wall_y[1],0); 
-  } */
 
   drawWall(wall_x[0],wall_x[1],wall_y[0],wall_y[1], wall_y[2], wall_y[3]);
 
